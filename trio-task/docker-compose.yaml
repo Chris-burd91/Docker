@@ -1,10 +1,46 @@
+---
 version: "3.7"
 services:
     flask-app:
       container_name: flask-app
       image: flask-app
-      build: .
+      build: ./flask-app
       ports:
-       - targer: 80
+       - target: 5000 
+         published: 5000
+         protocol: tcp
+      environment:
+       MYSQL_USER: ${MYSQL_USER}
+       MYSQL_PASS: ${MYSQL_PASS}
+       MYSQL_URL: database:3306
+       MYSQL_DB: database
+       SECRET_KEY: ${SECRET_KEY}
+    nginx:
+      image: nginx:latest
+      ports: 
+       - target: 80
          published: 80
-      
+         protocol: tcp
+      volumes:
+       - type: bind
+         source: ./nginx/nginx.conf
+         target: /etc/nginx/nginx.conf
+   
+    database:
+       container_name: database
+       image: mysql:5.7 
+       build : ./db
+       ports:
+        - target: 3306
+          published: 3306
+          protocol: tcp
+       environment:
+          MYSQL_ROOT_PASSWORD: ${MYSQL_PASS}
+          MYSQL_DATABASE: database
+       volumes:
+        - type: volume
+          source: persistent_db
+          target: /var/lib/mysql
+volumes:
+    persistent_db:
+...
